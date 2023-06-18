@@ -1,4 +1,4 @@
-import 'package:aiscript_dart/aiscript_dart.dart';
+import 'package:aiscript_dart/aiscript.dart';
 import 'package:test/test.dart';
 
 void main() {
