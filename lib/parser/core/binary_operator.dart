@@ -1,16 +1,6 @@
 import 'dart:math';
 
-abstract class Node<T> {
-  T value();
-  Node();
-}
-
-class Literal<T> implements Node<T> {
-  @override
-  T value() => this._value;
-  final T _value;
-  Literal(this._value);
-}
+import 'literal.dart';
 
 abstract class BinaryOperator<TLeft, TRight, TResult> implements Node<TResult> {
   final Node<TLeft> left;

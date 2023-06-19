@@ -3,6 +3,8 @@ import 'dart:ffi';
 import 'package:aiscript_dart/parser/core/binary_operator.dart';
 import 'package:petitparser/petitparser.dart';
 
+import 'parser/core/literal.dart';
+
 int calculate() {
   return 6 * 7;
 }
@@ -59,7 +61,23 @@ Node<dynamic> parse(text) {
       binaryOperator(minus | plus | multiply | divide | modulo | power);
   numOperand.set(binaryCalc | num);
 
-  parser.set(binaryBool | numOperand | literal);
+  final arrayItem = undefined();
+  final arrayItemAndComma =
+      (arrayItem.trim() & char(',').trim()).map((values) => values[0]);
+  final array = (char('[').trim() &
+          (arrayItemAndComma.star() & arrayItem).optional() &
+          char(']').trim())
+      .map((value) {
+    if (value[1] == null) return Array([]);
+    final items = (value[1][0] as Iterable<dynamic>)
+        .map((value) => value as Node<dynamic>);
+    return Array([...items, value[1][1] as Node<dynamic>]);
+  });
+
+  arrayItem.set(array | boolOperand | numOperand | literal);
+
+  parser.set(array | boolOperand | numOperand | literal);
+
   return parser.end().parse(text).value as Node<dynamic>;
 }
 

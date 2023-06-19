@@ -101,4 +101,32 @@ void main() {
   test('complex compare condition', () {
     expect(parse('((3 != 1) && ("2" == "3"))').value(), false);
   });
+
+  test('parse array', () {
+    expect(parse('[1]').value(), [1]);
+  });
+
+  test('parse array', () {
+    expect(parse('[1, 2]').value(), [1, 2]);
+  });
+
+  test('parse nested array', () {
+    expect(parse('[1, 2, [1, 2]]').value(), [
+      1,
+      2,
+      [1, 2]
+    ]);
+  });
+
+  test('parse complex array', () {
+    expect(parse('[(1 == 2), (2 + 3), [1, 2]]').value(), [
+      false,
+      5,
+      [1, 2]
+    ]);
+  });
+
+  test('parse empty array', () {
+    expect(parse('[]').value(), []);
+  });
 }
