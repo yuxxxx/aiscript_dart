@@ -7,62 +7,98 @@ void main() {
   });
 
   test('parse add', () {
-    expect(parseNumber('1 + 2'), 3);
+    expect(parse('(1 + 2)').value(), 3);
   });
 
   test('parse minus', () {
-    expect(parseNumber('1 - 2'), -1);
+    expect(parse('(1 - 2)').value(), -1);
   });
 
   test('parse multiple', () {
-    expect(parseNumber('1 + 2 * 3'), 7);
+    expect(parse('(1 + (2 * 3))').value(), 7);
+  });
+
+  test('parse power', () {
+    expect(parse('(10 ^ 2)').value(), 100);
+  });
+
+  test('parse modulo', () {
+    expect(parse('(13 % 5)').value(), 3);
   });
 
   test('parse div', () {
-    expect(parseNumber('1 / 2'), 0.5);
+    expect(parse('(1 / 2)').value(), 0.5);
   });
 
   test('parse div0', () {
-    expect(parseNumber('1 / 0'), double.infinity);
+    expect(parse('(1 / 0)').value(), double.infinity);
   });
 
   test('parse div00', () {
-    expect(parseNumber('0 / 0'), isNaN);
+    expect(parse('(0 / 0)').value(), isNaN);
   });
 
   test('parse compare lt', () {
-    expect(parseCompare('3 > 2'), true);
+    expect(parse('(3 > 2)').value(), true);
   });
 
   test('parse compare gt', () {
-    expect(parseCompare('2 < 3'), true);
+    expect(parse('(2 < 3)').value(), true);
   });
 
   test('parse compare eq number', () {
-    expect(parseCompare('2 == 3'), false);
+    expect(parse('(2 == 3)').value(), false);
   });
 
   test('parse eq string', () {
-    expect(parseCompare('"2e" == "2e"'), true);
+    expect(parse('("2e" == "2e")').value(), true);
   });
 
   test('parse compare ne number', () {
-    expect(parseCompare('2 != 3'), true);
+    expect(parse('(2 != 3)').value(), true);
   });
 
   test('parse ne string', () {
-    expect(parseCompare('"2e" != "2e"'), false);
+    expect(parse('("2e" != "2e")').value(), false);
+  });
+
+  test('parse and', () {
+    expect(parse('(true && false)').value(), false);
+  });
+
+  test('parse or', () {
+    expect(parse('(true || false)').value(), true);
   });
 
   test('parse string', () {
-    expect(parseCompare('"text"'), 'text');
+    expect(parse('"text"').value(), 'text');
   });
 
   test('parse integer', () {
-    expect(parseCompare('42'), 42);
+    expect(parse('42').value(), 42);
   });
 
   test('parse real', () {
-    expect(parseCompare('4.2'), 4.2);
+    expect(parse('4.2').value(), 4.2);
+  });
+
+  test('parse boolean', () {
+    expect(parse('true').value(), true);
+  });
+
+  test('complex compare boolean', () {
+    expect(parse('((3 > 1) && true)').value(), true);
+  });
+
+  test('complex binary binary bool', () {
+    expect(parse('((3 < 1) || (2 == 1))').value(), false);
+  });
+
+  test('complex binary binary calculate', () {
+    expect(parse('((3 + 1) * (2 - 1))').value(), 4);
+  });
+
+  test('complex compare condition', () {
+    expect(parse('((3 != 1) && ("2" == "3"))').value(), false);
   });
 }
