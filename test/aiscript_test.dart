@@ -126,6 +126,28 @@ void main() {
     ]);
   });
 
+  test('parse break-line empty array', () {
+    expect(parse('''[
+
+    ]''').value(), []);
+  });
+
+  test('parse break-line single item array', () {
+    expect(parse('''[
+      2
+    ]''').value(), [2]);
+  });
+
+  test('parse break-line multiple items array', () {
+    expect(parse('''[
+      {test: 2},
+      null
+    ]''').value(), [
+      {'test': 2},
+      null
+    ]);
+  });
+
   test('parse empty array', () {
     expect(parse('[]').value(), []);
   });

@@ -74,7 +74,6 @@ Node<dynamic> parse(text) {
         .map((value) => value as Node<dynamic>);
     return Array([...items, value[1][1] as Node<dynamic>]);
   });
-  arrayItem.set(array | boolOperand | numOperand | literal);
 
   final propertyValue = undefined();
   final property =
@@ -88,12 +87,12 @@ Node<dynamic> parse(text) {
           property.optional() &
           char('}').trim())
       .map((values) {
-    print(values);
     final items = values[2] == null ? values[1] : [...values[1], values[2]];
     return Literal({for (var kv in items) kv[0]: kv[1].value()});
   });
-  propertyValue.set(array | obj | literal);
 
+  arrayItem.set(array | obj | boolOperand | numOperand | literal);
+  propertyValue.set(array | obj | boolOperand | numOperand | literal);
   parser.set(array | obj | boolOperand | numOperand | literal);
 
   return parser.parse(text).value as Node<dynamic>;
