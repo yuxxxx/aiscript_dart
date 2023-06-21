@@ -22,7 +22,8 @@ Node<dynamic> parse(text) {
   final num = number();
   final bool = boolean();
   final sl = str();
-  final literal = (num | bool | sl);
+  final nul = string('null').trim().map((_) => Literal(null));
+  final literal = (num | bool | sl | nul);
 
   final eq = (equatable & string('==').trim() & equatable)
       .map((values) => Equal(values[0], values[2]));
@@ -73,12 +74,29 @@ Node<dynamic> parse(text) {
         .map((value) => value as Node<dynamic>);
     return Array([...items, value[1][1] as Node<dynamic>]);
   });
-
   arrayItem.set(array | boolOperand | numOperand | literal);
 
-  parser.set(array | boolOperand | numOperand | literal);
+  final propertyValue = undefined();
+  final property =
+      (word().plus().flatten() & string(':').trim() & propertyValue)
+          .map((values) => [values[0], values[2]]);
+  final propertyWithDelimiter =
+      (property.trim(undefined()) & char(';').or(newline()))
+          .map((values) => values[0]);
+  final obj = (char('{').trim() &
+          propertyWithDelimiter.trim().star() &
+          property.optional() &
+          char('}').trim())
+      .map((values) {
+    print(values);
+    final items = values[2] == null ? values[1] : [...values[1], values[2]];
+    return Literal({for (var kv in items) kv[0]: kv[1].value()});
+  });
+  propertyValue.set(array | obj | literal);
 
-  return parser.end().parse(text).value as Node<dynamic>;
+  parser.set(array | obj | boolOperand | numOperand | literal);
+
+  return parser.parse(text).value as Node<dynamic>;
 }
 
 ChoiceParser<dynamic> boolean() {

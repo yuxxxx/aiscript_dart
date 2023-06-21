@@ -107,7 +107,7 @@ void main() {
   });
 
   test('parse array', () {
-    expect(parse('[1, 2]').value(), [1, 2]);
+    expect(parse('[1, "2"]').value(), [1, "2"]);
   });
 
   test('parse nested array', () {
@@ -128,5 +128,51 @@ void main() {
 
   test('parse empty array', () {
     expect(parse('[]').value(), []);
+  });
+
+  test('parse null', () {
+    expect(parse('null').value(), null);
+  });
+
+  test('parse empty object', () {
+    expect(parse('{}').value(), {});
+  });
+
+  test('parse one property object', () {
+    expect(parse('{ hello: 2 }').value(), ({'hello': 2}));
+  });
+
+  test('parse two properties object', () {
+    expect(parse('{ hello: 2; world: false }').value(),
+        ({'hello': 2, 'world': false}));
+  });
+
+  test('parse multiple properties object', () {
+    expect(
+        parse('{ hello: "2"; world: null; foo: [1] }').value(),
+        ({
+          'hello': "2",
+          'world': null,
+          'foo': [1]
+        }));
+  });
+
+  test('parse nested properties object', () {
+    expect(
+        parse('{ hello: { world: "ai" } }').value(),
+        ({
+          'hello': {'world': 'ai'}
+        }));
+  });
+
+  test('parse break-line form empty object', () {
+    expect(parse('''{ 
+         }''').value(), ({}));
+  });
+
+  test('parse break-line form object', () {
+    expect(parse('''{
+      hello: "world"
+         }''').value(), ({'hello': 'world'}));
   });
 }
