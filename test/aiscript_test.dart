@@ -102,24 +102,24 @@ void main() {
     expect(parse('((3 != 1) && ("2" == "3"))').value(), false);
   });
 
-  test('parse array', () {
+  test('parse single item array', () {
     expect(parse('[1]').value(), [1]);
   });
 
-  test('parse array', () {
-    expect(parse('[1, "2"]').value(), [1, "2"]);
+  test('parse multiple items array', () {
+    expect(parse('[1 "2"]').value(), [1, "2"]);
   });
 
   test('parse nested array', () {
-    expect(parse('[1, 2, [1, 2]]').value(), [
+    expect(parse('[1 2 [1 2]]').value(), [
       1,
       2,
       [1, 2]
     ]);
   });
 
-  test('parse complex array', () {
-    expect(parse('[(1 == 2), (2 + 3), [1, 2]]').value(), [
+  test('parse computed array', () {
+    expect(parse('[(1 == 2) (2 + 3) [1 2]]').value(), [
       false,
       5,
       [1, 2]
@@ -140,12 +140,9 @@ void main() {
 
   test('parse break-line multiple items array', () {
     expect(parse('''[
-      {test: 2},
-      null
-    ]''').value(), [
-      {'test': 2},
-      null
-    ]);
+      true
+      2
+    ]''').value(), [true, 2]);
   });
 
   test('parse empty array', () {
@@ -196,5 +193,29 @@ void main() {
     expect(parse('''{
       hello: "world"
          }''').value(), ({'hello': 'world'}));
+  });
+
+  test('parse break-line form multiple object', () {
+    expect(parse('''{
+      hello: "world";
+      test: true;
+         }''').value(), ({'hello': 'world', 'test': true}));
+  });
+
+  test('parse break-line form nested array', () {
+    expect(
+        parse('''[
+         {hello: "world"}
+          [2]
+         [true]
+         {result: [null] }]''').value(),
+        ([
+          {'hello': 'world'},
+          [2],
+          [true],
+          {
+            'result': [null]
+          }
+        ]));
   });
 }

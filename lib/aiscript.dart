@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:aiscript_dart/parser/core/binary_operator.dart';
 import 'package:petitparser/petitparser.dart';
 
@@ -22,7 +20,7 @@ Node<dynamic> parse(text) {
   final num = number();
   final bool = boolean();
   final sl = str();
-  final nul = string('null').trim().map((_) => Literal(null));
+  final nul = string('null').map((_) => Literal(null));
   final literal = (num | bool | sl | nul);
 
   final eq = (equatable & string('==').trim() & equatable)
@@ -63,31 +61,35 @@ Node<dynamic> parse(text) {
   numOperand.set(binaryCalc | num);
 
   final arrayItem = undefined();
-  final arrayItemAndComma =
-      (arrayItem.trim() & char(',').trim()).map((values) => values[0]);
-  final array = (char('[').trim() &
-          (arrayItemAndComma.star() & arrayItem).optional() &
-          char(']').trim())
+  final array = (char('[') &
+          (whitespace() | newline()).star() &
+          arrayItem.trim().star() &
+          (whitespace() | newline()).star() &
+          char(']'))
       .map((value) {
-    if (value[1] == null) return Array([]);
-    final items = (value[1][0] as Iterable<dynamic>)
-        .map((value) => value as Node<dynamic>);
-    return Array([...items, value[1][1] as Node<dynamic>]);
+    if (value[2] == null) return Array([]);
+    final head = (value[2] as List<dynamic>).map((v) => v as Node<dynamic>);
+    return Array(head);
   });
 
   final propertyValue = undefined();
-  final property =
-      (word().plus().flatten() & string(':').trim() & propertyValue)
-          .map((values) => [values[0], values[2]]);
+  final property = (word().plus().flatten() &
+          char(' ').star() &
+          string(':') &
+          char(' ').star() &
+          propertyValue)
+      .map((values) => [values[0], values[4]]);
   final propertyWithDelimiter =
-      (property.trim(undefined()) & char(';').or(newline()))
+      (property & whitespace().star() & char(';').or(newline()))
           .map((values) => values[0]);
-  final obj = (char('{').trim() &
+  final obj = (char('{') &
+          (whitespace() | newline()).star() &
           propertyWithDelimiter.trim().star() &
           property.optional() &
-          char('}').trim())
+          (whitespace() | newline()).star() &
+          char('}'))
       .map((values) {
-    final items = values[2] == null ? values[1] : [...values[1], values[2]];
+    final items = values[3] == null ? values[2] : [...values[2], values[3]];
     return Literal({for (var kv in items) kv[0]: kv[1].value()});
   });
 
@@ -107,10 +109,9 @@ ChoiceParser<dynamic> boolean() {
 
 ChoiceParser<dynamic> number() {
   final integer =
-      digit().plus().flatten().trim().map((value) => Literal(int.parse(value)));
+      digit().plus().flatten().map((value) => Literal(int.parse(value)));
   final real = (digit().plus() & char('.') & digit().plus())
       .flatten()
-      .trim()
       .map((value) => Literal(double.parse(value)));
   return (real | integer);
 }
