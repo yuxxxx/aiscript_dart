@@ -1,17 +1,17 @@
 import 'package:aiscript_dart/parser/core/binary_operator.dart';
 import 'package:petitparser/petitparser.dart';
 
-import 'parser/core/literal.dart';
+import 'parser/core/node.dart';
 
-int calculate() {
-  return 6 * 7;
-}
+final sp = pattern(' \t').star();
+final ws = whitespace().star();
 
 Parser<dynamic> binaryOperator(expression) {
-  return (char('(').trim() & expression & char(')')).map((value) => value[1]);
+  return (char('(') & ws & expression & ws & char(')'))
+      .map((value) => value[2]);
 }
 
-Node<dynamic> parse(text) {
+ValuedNode<dynamic> parse(text) {
   final parser = undefined();
   final numOperand = undefined();
   final boolOperand = undefined();
@@ -20,7 +20,7 @@ Node<dynamic> parse(text) {
   final num = number();
   final bool = boolean();
   final sl = str();
-  final nul = string('null').map((_) => Literal(null));
+  final nul = string('null').map((_) => Literal(null, 'null'));
   final literal = (num | bool | sl | nul);
 
   final eq = (equatable & string('==').trim() & equatable)
@@ -60,6 +60,7 @@ Node<dynamic> parse(text) {
       binaryOperator(minus | plus | multiply | divide | modulo | power);
   numOperand.set(binaryCalc | num);
 
+  // array
   final arrayItem = undefined();
   final array = (char('[') &
           (whitespace() | newline()).star() &
@@ -68,10 +69,12 @@ Node<dynamic> parse(text) {
           char(']'))
       .map((value) {
     if (value[2] == null) return Array([]);
-    final head = (value[2] as List<dynamic>).map((v) => v as Node<dynamic>);
+    final head =
+        (value[2] as List<dynamic>).map((v) => v as ValuedNode<dynamic>);
     return Array(head);
   });
 
+  // object
   final propertyValue = undefined();
   final property = (word().plus().flatten() &
           char(' ').star() &
@@ -90,33 +93,48 @@ Node<dynamic> parse(text) {
           char('}'))
       .map((values) {
     final items = values[3] == null ? values[2] : [...values[2], values[3]];
-    return Literal({for (var kv in items) kv[0]: kv[1].value()});
+    return Literal({for (var kv in items) kv[0]: kv[1].value}, 'object');
   });
 
+  final expr = undefined();
+  final name = (letter() & word().star()).flatten().map((value) => value);
+  final variable = (string('let') &
+          pattern(' \t').star() &
+          name &
+          pattern(' \t').star() &
+          expr)
+      .map((values) => Definition(values[2], values[4]));
+  final identifier = name.map((value) => Identifier(value[0]));
   arrayItem.set(array | obj | boolOperand | numOperand | literal);
   propertyValue.set(array | obj | boolOperand | numOperand | literal);
   parser.set(array | obj | boolOperand | numOperand | literal);
+  expr.set(array | obj | boolOperand | numOperand | literal);
 
-  return parser.parse(text).value as Node<dynamic>;
+  return parser.parse(text).value as ValuedNode<dynamic>;
 }
 
 ChoiceParser<dynamic> boolean() {
-  final trueLiteral = string("true").map((_) => Literal(true));
-  final falseLiteral = string("false").map((_) => Literal(false));
+  final trueLiteral = string("true").map((_) => Literal(true, 'boolean'));
+  final falseLiteral = string("false").map((_) => Literal(false, 'boolean'));
 
   return (trueLiteral | falseLiteral);
 }
 
 ChoiceParser<dynamic> number() {
   final integer =
-      digit().plus().flatten().map((value) => Literal(int.parse(value)));
-  final real = (digit().plus() & char('.') & digit().plus())
+      (pattern('+-').optional() & ((pattern('1-9') & digit().star()) | digit()))
+          .flatten()
+          .map((value) => Literal(int.parse(value), 'number'));
+  final real = (pattern('+-').optional() &
+          ((pattern('1-9') & digit().star()) | digit()) &
+          char('.') &
+          digit().plus())
       .flatten()
-      .map((value) => Literal(double.parse(value)));
+      .map((value) => Literal(double.parse(value), 'number'));
   return (real | integer);
 }
 
 Parser<dynamic> str() {
   return (char('"') & word().plus().flatten() & char('"'))
-      .map((values) => Literal(values[1] as String));
+      .map((values) => Literal(values[1] as String, 'string'));
 }
