@@ -4,7 +4,7 @@ import 'package:petitparser/petitparser.dart';
 import 'parser/core/node.dart';
 
 final sp = pattern(' \t').star();
-final ws = whitespace().star();
+final ws = pattern(' \t\r\n').star();
 
 Parser<dynamic> binaryOperator(expression) {
   return (char('(') & ws & expression & ws & char(')'))
@@ -76,20 +76,16 @@ ValuedNode<dynamic> parse(text) {
 
   // object
   final propertyValue = undefined();
-  final property = (word().plus().flatten() &
-          char(' ').star() &
-          string(':') &
-          char(' ').star() &
-          propertyValue)
-      .map((values) => [values[0], values[4]]);
+  final property =
+      (word().plus().flatten() & ws & string(':') & ws & propertyValue)
+          .map((values) => [values[0], values[4]]);
   final propertyWithDelimiter =
-      (property & whitespace().star() & char(';').or(newline()))
-          .map((values) => values[0]);
+      (property & sp & pattern(',;').or(newline())).map((values) => values[0]);
   final obj = (char('{') &
-          (whitespace() | newline()).star() &
+          ws &
           propertyWithDelimiter.trim().star() &
           property.optional() &
-          (whitespace() | newline()).star() &
+          ws &
           char('}'))
       .map((values) {
     final items = values[3] == null ? values[2] : [...values[2], values[3]];
@@ -98,11 +94,7 @@ ValuedNode<dynamic> parse(text) {
 
   final expr = undefined();
   final name = (letter() & word().star()).flatten().map((value) => value);
-  final variable = (string('let') &
-          pattern(' \t').star() &
-          name &
-          pattern(' \t').star() &
-          expr)
+  final variable = (string('let') & sp & name & ws & expr)
       .map((values) => Definition(values[2], values[4]));
   final identifier = name.map((value) => Identifier(value[0]));
   arrayItem.set(array | obj | boolOperand | numOperand | literal);
@@ -135,6 +127,19 @@ ChoiceParser<dynamic> number() {
 }
 
 Parser<dynamic> str() {
-  return (char('"') & word().plus().flatten() & char('"'))
-      .map((values) => Literal(values[1] as String, 'string'));
+  Parser<String> characterPrimitive(String delimiter) => [
+        characterNormal(delimiter),
+        characterEscape(delimiter),
+      ].toChoiceParser();
+  final doubleQuote = (char('"') & characterPrimitive('"').star() & char('"'))
+      .map((values) => Literal((values[1] as List<String>).join(), 'string'));
+  final singleQuote = (char("'") & characterPrimitive("'").star() & char("'"))
+      .map((values) => Literal((values[1] as List<String>).join(), 'string'));
+  return (doubleQuote | singleQuote);
 }
+
+Parser<String> characterNormal(String delimiter) => pattern('^$delimiter\\');
+Parser<String> characterEscape(String delimiter) => seq2(
+      char('\\'),
+      char(delimiter),
+    ).map2((_, char) => char);

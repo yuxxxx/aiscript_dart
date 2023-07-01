@@ -69,6 +69,20 @@ void main() {
   test('parse string', () {
     expect(parse('"text"').value, 'text');
   });
+  test('parse blank string', () {
+    expect(parse('""').value, '');
+  });
+
+  test('parse escaped string', () {
+    expect(parse('"\\"test\\""').value, '"test"');
+  });
+
+  test('parse single quote blank string', () {
+    expect(parse("''").value, '');
+  });
+  test('parse escaped single quote string', () {
+    expect(parse("'\\'test\\''").value, "'test'");
+  });
 
   test('parse integer', () {
     expect(parse('42').value, 42);
