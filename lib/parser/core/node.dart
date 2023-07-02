@@ -1,6 +1,11 @@
 abstract class Node {
   String get type;
   Node();
+
+  @override
+  String toString() {
+    return 'Node';
+  }
 }
 
 abstract class ValuedNode<T> extends Node {
@@ -18,6 +23,11 @@ class Literal<T> implements ValuedNode<T> {
   final T _value;
 
   Literal(this._value, this._type);
+
+  @override
+  toString() {
+    return 'Literal<$type>: $value';
+  }
 }
 
 class Definition<T> implements ValuedNode<T> {
@@ -28,19 +38,19 @@ class Definition<T> implements ValuedNode<T> {
   @override
   get type => 'def';
 
-  get name => _name;
+  String get name => _name;
   final String _name;
 
-  get mutable => _mutable;
+  bool get mutable => _mutable;
   final bool _mutable;
 
-  get varType => _varType;
+  TypeDefinition? get varType => _varType;
   final TypeDefinition? _varType;
 
   Definition(this._name, this._value, this._varType, this._mutable);
 
   @override
-  bool operator ==(Object other) {
+  operator ==(Object other) {
     if (identical(this, other)) {
       return true;
     }
@@ -50,6 +60,11 @@ class Definition<T> implements ValuedNode<T> {
           varType == other.varType;
     }
     return false;
+  }
+
+  @override
+  toString() {
+    return 'Definition: $name<($varType)> mutable: $mutable';
   }
 }
 
@@ -63,7 +78,7 @@ class Identifier implements Node {
   Identifier(this._name);
 
   @override
-  bool operator ==(Object other) {
+  operator ==(Object other) {
     if (identical(this, other)) {
       return true;
     }
@@ -71,6 +86,11 @@ class Identifier implements Node {
       return name == other.name;
     }
     return false;
+  }
+
+  @override
+  String toString() {
+    return 'Identifier: $name';
   }
 }
 

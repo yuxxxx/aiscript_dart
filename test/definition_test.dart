@@ -18,4 +18,19 @@ void main() {
         Definition('variant', Literal(2, 'num'),
             NamedTypeDefinition('num', null), false));
   });
+
+  test('parse variable definition', () {
+    expect(
+        parse('''var obj
+        = {
+          hello: ['world']
+        }'''),
+        Definition(
+            'obj',
+            Literal({
+              'hello': ['world']
+            }, 'obj'),
+            null,
+            true));
+  });
 }

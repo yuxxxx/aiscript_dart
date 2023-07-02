@@ -100,7 +100,8 @@ Node parse(text) {
   final nameWithNameSpace =
       (name & char(':') & name).flatten().map((value) => value);
 
-  final variable = (string('let') &
+  final variable = ((string('let').map((_) => false) |
+              string('var').map((_) => true)) &
           sp &
           name &
           (ws & char(':') & ws & type).map((value) => value[3]).optional() &
@@ -108,7 +109,7 @@ Node parse(text) {
           char('=') &
           ws &
           expr)
-      .map((values) => Definition(values[2], values[7], values[3], false));
+      .map((values) => Definition(values[2], values[7], values[3], values[0]));
   final identifier =
       (nameWithNameSpace | name).map((value) => Identifier(value));
 
