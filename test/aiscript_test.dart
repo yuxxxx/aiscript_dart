@@ -1,135 +1,138 @@
 import 'package:aiscript_dart/aiscript.dart';
+import 'package:aiscript_dart/parser/core/node.dart';
 import 'package:test/test.dart';
+
+ValuedNode<dynamic> parseValue(text) => parse(text) as ValuedNode<dynamic>;
 
 void main() {
   test('parse add', () {
-    expect(parse('(1 + 2)').value, 3);
+    expect(parseValue('(1 + 2)').value, 3);
   });
 
   test('parse minus', () {
-    expect(parse('(1 - 2)').value, -1);
+    expect(parseValue('(1 - 2)').value, -1);
   });
 
   test('parse multiple', () {
-    expect(parse('(1 + (2 * 3))').value, 7);
+    expect(parseValue('(1 + (2 * 3))').value, 7);
   });
 
   test('parse power', () {
-    expect(parse('(10 ^ 2)').value, 100);
+    expect(parseValue('(10 ^ 2)').value, 100);
   });
 
   test('parse modulo', () {
-    expect(parse('(13 % 5)').value, 3);
+    expect(parseValue('(13 % 5)').value, 3);
   });
 
   test('parse div', () {
-    expect(parse('(1 / 2)').value, 0.5);
+    expect(parseValue('(1 / 2)').value, 0.5);
   });
 
   test('parse div0', () {
-    expect(parse('(1 / 0)').value, double.infinity);
+    expect(parseValue('(1 / 0)').value, double.infinity);
   });
 
   test('parse div00', () {
-    expect(parse('(0 / 0)').value, isNaN);
+    expect(parseValue('(0 / 0)').value, isNaN);
   });
 
   test('parse compare lt', () {
-    expect(parse('(3 > 2)').value, true);
+    expect(parseValue('(3 > 2)').value, true);
   });
 
   test('parse compare gt', () {
-    expect(parse('(2 < 3)').value, true);
+    expect(parseValue('(2 < 3)').value, true);
   });
 
   test('parse compare eq number', () {
-    expect(parse('(2 == 3)').value, false);
+    expect(parseValue('(2 == 3)').value, false);
   });
 
   test('parse eq string', () {
-    expect(parse('("2e" == "2e")').value, true);
+    expect(parseValue('("2e" == "2e")').value, true);
   });
 
   test('parse compare ne number', () {
-    expect(parse('(2 != 3)').value, true);
+    expect(parseValue('(2 != 3)').value, true);
   });
 
   test('parse ne string', () {
-    expect(parse('("2e" != "2e")').value, false);
+    expect(parseValue('("2e" != "2e")').value, false);
   });
 
   test('parse and', () {
-    expect(parse('(true && false)').value, false);
+    expect(parseValue('(true && false)').value, false);
   });
 
   test('parse or', () {
-    expect(parse('(true || false)').value, true);
+    expect(parseValue('(true || false)').value, true);
   });
 
   test('parse string', () {
-    expect(parse('"text"').value, 'text');
+    expect(parseValue('"text"').value, 'text');
   });
   test('parse blank string', () {
-    expect(parse('""').value, '');
+    expect(parseValue('""').value, '');
   });
 
   test('parse escaped string', () {
-    expect(parse('"\\"test\\""').value, '"test"');
+    expect(parseValue('"\\"test\\""').value, '"test"');
   });
 
   test('parse single quote blank string', () {
-    expect(parse("''").value, '');
+    expect(parseValue("''").value, '');
   });
   test('parse escaped single quote string', () {
-    expect(parse("'\\'test\\''").value, "'test'");
+    expect(parseValue("'\\'test\\''").value, "'test'");
   });
 
   test('parse integer', () {
-    expect(parse('42').value, 42);
+    expect(parseValue('42').value, 42);
   });
 
   test('parse negative integer', () {
-    expect(parse('-2').value, -2);
+    expect(parseValue('-2').value, -2);
   });
 
   test('parse real', () {
-    expect(parse('4.2').value, 4.2);
+    expect(parseValue('4.2').value, 4.2);
   });
 
   test('parse negative real', () {
-    expect(parse('-42.2').value, -42.2);
+    expect(parseValue('-42.2').value, -42.2);
   });
 
   test('parse boolean', () {
-    expect(parse('true').value, true);
+    expect(parseValue('true').value, true);
   });
 
   test('complex compare boolean', () {
-    expect(parse('((3 > 1) && true)').value, true);
+    expect(parseValue('((3 > 1) && true)').value, true);
   });
 
   test('complex binary binary bool', () {
-    expect(parse('((3 < 1) || (2 == 1))').value, false);
+    expect(parseValue('((3 < 1) || (2 == 1))').value, false);
   });
 
   test('complex binary binary calculate', () {
-    expect(parse('((3 + 1) * (2 - 1))').value, 4);
+    expect(parseValue('((3 + 1) * (2 - 1))').value, 4);
   });
 
   test('complex compare condition', () {
-    expect(parse('((3 != 1) && ("2" == "3"))').value, false);
+    expect(parseValue('((3 != 1) && ("2" == "3"))').value, false);
   });
 
   test('parse single item array', () {
-    expect(parse('[1]').value, [1]);
+    expect(parseValue('[1]').value, [1]);
   });
 
   test('parse multiple items array', () {
-    expect(parse('[1 "2"]').value, [1, "2"]);
+    expect(parseValue('[1 "2"]').value, [1, "2"]);
   });
 
   test('parse nested array', () {
-    expect(parse('[1 2 [1 2]]').value, [
+    expect(parseValue('[1 2 [1 2]]').value, [
       1,
       2,
       [1, 2]
@@ -137,7 +140,7 @@ void main() {
   });
 
   test('parse computed array', () {
-    expect(parse('[(1 == 2) (2 + 3) [1 2]]').value, [
+    expect(parseValue('[(1 == 2) (2 + 3) [1 2]]').value, [
       false,
       5,
       [1, 2]
@@ -145,48 +148,48 @@ void main() {
   });
 
   test('parse break-line empty array', () {
-    expect(parse('''[
+    expect(parseValue('''[
 
     ]''').value, []);
   });
 
   test('parse break-line single item array', () {
-    expect(parse('''[
+    expect(parseValue('''[
       2
     ]''').value, [2]);
   });
 
   test('parse break-line multiple items array', () {
-    expect(parse('''[
+    expect(parseValue('''[
       true
       2
     ]''').value, [true, 2]);
   });
 
   test('parse empty array', () {
-    expect(parse('[]').value, []);
+    expect(parseValue('[]').value, []);
   });
 
   test('parse null', () {
-    expect(parse('null').value, null);
+    expect(parseValue('null').value, null);
   });
 
   test('parse empty object', () {
-    expect(parse('{}').value, {});
+    expect(parseValue('{}').value, {});
   });
 
   test('parse one property object', () {
-    expect(parse('{ hello: 2 }').value, ({'hello': 2}));
+    expect(parseValue('{ hello: 2 }').value, ({'hello': 2}));
   });
 
   test('parse two properties object', () {
-    expect(parse('{ hello: 2; world: false }').value,
+    expect(parseValue('{ hello: 2; world: false }').value,
         ({'hello': 2, 'world': false}));
   });
 
   test('parse multiple properties object', () {
     expect(
-        parse('{ hello: "2"; world: null; foo: [1] }').value,
+        parseValue('{ hello: "2"; world: null; foo: [1] }').value,
         ({
           'hello': "2",
           'world': null,
@@ -196,25 +199,25 @@ void main() {
 
   test('parse nested properties object', () {
     expect(
-        parse('{ hello: { world: "ai" } }').value,
+        parseValue('{ hello: { world: "ai" } }').value,
         ({
           'hello': {'world': 'ai'}
         }));
   });
 
   test('parse break-line form empty object', () {
-    expect(parse('''{ 
+    expect(parseValue('''{ 
          }''').value, ({}));
   });
 
   test('parse break-line form object', () {
-    expect(parse('''{
+    expect(parseValue('''{
       hello: "world"
          }''').value, ({'hello': 'world'}));
   });
 
   test('parse break-line form multiple object', () {
-    expect(parse('''{
+    expect(parseValue('''{
       hello: "world";
       test: true;
          }''').value, ({'hello': 'world', 'test': true}));
@@ -222,7 +225,7 @@ void main() {
 
   test('parse break-line form nested array', () {
     expect(
-        parse('''[
+        parseValue('''[
          {hello: "world"}
           [2]
          [true]

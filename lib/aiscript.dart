@@ -5,13 +5,15 @@ import 'parser/core/node.dart';
 
 final sp = pattern(' \t').star();
 final ws = pattern(' \t\r\n').star();
+final wsp = pattern(' \t\r\n').plus();
+ChoiceParser<dynamic> separator = ((ws & char(',') & ws) | wsp);
 
 Parser<dynamic> binaryOperator(expression) {
   return (char('(') & ws & expression & ws & char(')'))
       .map((value) => value[2]);
 }
 
-ValuedNode<dynamic> parse(text) {
+Node parse(text) {
   final parser = undefined();
   final numOperand = undefined();
   final boolOperand = undefined();
@@ -68,10 +70,9 @@ ValuedNode<dynamic> parse(text) {
           (whitespace() | newline()).star() &
           char(']'))
       .map((value) {
-    if (value[2] == null) return Array([]);
-    final head =
-        (value[2] as List<dynamic>).map((v) => v as ValuedNode<dynamic>);
-    return Array(head);
+    if (value[2] == null) return Literal([], 'arr');
+    final items = (value[2] as List<dynamic>).map((v) => v.value);
+    return Literal(items, 'arr');
   });
 
   // object
@@ -89,57 +90,88 @@ ValuedNode<dynamic> parse(text) {
           char('}'))
       .map((values) {
     final items = values[3] == null ? values[2] : [...values[2], values[3]];
-    return Literal({for (var kv in items) kv[0]: kv[1].value}, 'object');
+    return Literal({for (var kv in items) kv[0]: kv[1].value}, 'obj');
   });
 
   final expr = undefined();
+  final type = undefined();
+
   final name = (letter() & word().star()).flatten().map((value) => value);
-  final variable = (string('let') & sp & name & ws & expr)
-      .map((values) => Definition(values[2], values[4]));
-  final identifier = name.map((value) => Identifier(value[0]));
+  final nameWithNameSpace =
+      (name & char(':') & name).flatten().map((value) => value);
+
+  final variable = (string('let') &
+          sp &
+          name &
+          (ws & char(':') & ws & type).map((value) => value[3]).optional() &
+          ws &
+          char('=') &
+          ws &
+          expr)
+      .map((values) => Definition(values[2], values[7], values[3], false));
+  final identifier =
+      (nameWithNameSpace | name).map((value) => Identifier(value));
+
+  final genericNamedType = (name & sp & char('<') & sp & type & sp & char('>'))
+      .map((value) => NamedTypeDefinition(value[0], value[4]));
+  final primitiveNamedType =
+      name.map((value) => NamedTypeDefinition(value, null));
+  final argTypes = (type & (separator & type).star())
+      .map((value) => [value[0], ...value[1].map((t) => t[1])]);
+  final functionType = (string('@(') &
+          ws &
+          argTypes.optional() &
+          ws &
+          char(')') &
+          ws &
+          string('=>') &
+          ws &
+          type)
+      .map((value) => FunctionTypeDefinition(value[2] ?? [], value[8]));
+  type.set(genericNamedType | primitiveNamedType | functionType);
   arrayItem.set(array | obj | boolOperand | numOperand | literal);
   propertyValue.set(array | obj | boolOperand | numOperand | literal);
-  parser.set(array | obj | boolOperand | numOperand | literal);
   expr.set(array | obj | boolOperand | numOperand | literal);
 
-  return parser.parse(text).value as ValuedNode<dynamic>;
+  parser.set(expr | variable | identifier);
+
+  return parser.parse(text).value as Node;
 }
 
-ChoiceParser<dynamic> boolean() {
-  final trueLiteral = string("true").map((_) => Literal(true, 'boolean'));
-  final falseLiteral = string("false").map((_) => Literal(false, 'boolean'));
+Parser<dynamic> boolean() {
+  final trueLiteral = string("true").map((_) => Literal(true, 'bool'));
+  final falseLiteral = string("false").map((_) => Literal(false, 'bool'));
 
   return (trueLiteral | falseLiteral);
 }
 
-ChoiceParser<dynamic> number() {
+Parser<dynamic> number() {
   final integer =
       (pattern('+-').optional() & ((pattern('1-9') & digit().star()) | digit()))
           .flatten()
-          .map((value) => Literal(int.parse(value), 'number'));
+          .map((value) => Literal(int.parse(value), 'num'));
   final real = (pattern('+-').optional() &
           ((pattern('1-9') & digit().star()) | digit()) &
           char('.') &
           digit().plus())
       .flatten()
-      .map((value) => Literal(double.parse(value), 'number'));
+      .map((value) => Literal(double.parse(value), 'num'));
   return (real | integer);
 }
 
 Parser<dynamic> str() {
+  Parser<String> characterNormal(String delimiter) => pattern('^$delimiter\\');
+  Parser<String> characterEscape(String delimiter) => seq2(
+        char('\\'),
+        char(delimiter),
+      ).map2((_, char) => char);
   Parser<String> characterPrimitive(String delimiter) => [
         characterNormal(delimiter),
         characterEscape(delimiter),
       ].toChoiceParser();
   final doubleQuote = (char('"') & characterPrimitive('"').star() & char('"'))
-      .map((values) => Literal((values[1] as List<String>).join(), 'string'));
+      .map((values) => Literal((values[1] as List<String>).join(), 'str'));
   final singleQuote = (char("'") & characterPrimitive("'").star() & char("'"))
-      .map((values) => Literal((values[1] as List<String>).join(), 'string'));
+      .map((values) => Literal((values[1] as List<String>).join(), 'str'));
   return (doubleQuote | singleQuote);
 }
-
-Parser<String> characterNormal(String delimiter) => pattern('^$delimiter\\');
-Parser<String> characterEscape(String delimiter) => seq2(
-      char('\\'),
-      char(delimiter),
-    ).map2((_, char) => char);

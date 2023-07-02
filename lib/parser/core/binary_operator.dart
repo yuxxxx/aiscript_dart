@@ -7,7 +7,7 @@ abstract class BinaryOperator<TLeft, TRight, TResult>
   final ValuedNode<TLeft> left;
   final ValuedNode<TRight> right;
   @override
-  get name => 'infix';
+  get type => 'infix';
   BinaryOperator(this.left, this.right);
 }
 
