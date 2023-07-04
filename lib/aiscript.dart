@@ -157,7 +157,7 @@ Node parse(text) {
           sp &
           char('(') &
           ws &
-          arguments & // 6
+          arguments.optional() & // 6
           ws &
           char(')') &
           (ws & char(':') & ws & type)
@@ -170,7 +170,10 @@ Node parse(text) {
           ws &
           char('}'))
       .map((value) => FunctionDefinition(
-          value[2], FunctionNode(value[6], value[9], value[13]), false));
+          value[2],
+          FunctionNode(
+              (value[6] ?? []).cast<Node>(), value[9], value[13].cast<Node>()),
+          false));
   fnDef.set(functionDefinition);
 
   final function = (string('@(') &

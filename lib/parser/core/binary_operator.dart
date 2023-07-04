@@ -14,71 +14,72 @@ abstract class BinaryOperator<TLeft, TRight, TResult>
 class Minus extends BinaryOperator<num, num, num> {
   @override
   get value => left.value - right.value;
-  Minus(left, right) : super(left, right);
+  Minus(ValuedNode<num> left, ValuedNode<num> right) : super(left, right);
 }
 
 class Plus extends BinaryOperator<num, num, num> {
   @override
   get value => left.value + right.value;
-  Plus(left, right) : super(left, right);
+  Plus(ValuedNode<num> left, ValuedNode<num> right) : super(left, right);
 }
 
 class Multiply extends BinaryOperator<num, num, num> {
   @override
   get value => left.value * right.value;
-  Multiply(left, right) : super(left, right);
+  Multiply(ValuedNode<num> left, ValuedNode<num> right) : super(left, right);
 }
 
 class Divide extends BinaryOperator<num, num, num> {
   @override
   get value => left.value / right.value;
-  Divide(left, right) : super(left, right);
+  Divide(ValuedNode<num> left, ValuedNode<num> right) : super(left, right);
 }
 
 class Modulo extends BinaryOperator<num, num, num> {
   @override
   get value => left.value % right.value;
-  Modulo(left, right) : super(left, right);
+  Modulo(ValuedNode<num> left, ValuedNode<num> right) : super(left, right);
 }
 
 class Power extends BinaryOperator<num, num, num> {
   @override
   get value => pow(left.value, right.value);
-  Power(left, right) : super(left, right);
+  Power(ValuedNode<num> left, ValuedNode<num> right) : super(left, right);
 }
 
 class Equal<TLeft, TRight> extends BinaryOperator<TLeft, TRight, bool> {
   @override
   get value => left.value == right.value;
-  Equal(left, right) : super(left, right);
+  Equal(ValuedNode<TLeft> left, ValuedNode<TRight> right) : super(left, right);
 }
 
 class NotEqual<TLeft, TRight> extends BinaryOperator<TLeft, TRight, bool> {
   @override
   get value => left.value != right.value;
-  NotEqual(left, right) : super(left, right);
+  NotEqual(ValuedNode<TLeft> left, ValuedNode<TRight> right)
+      : super(left, right);
 }
 
 class LessThan extends BinaryOperator<num, num, bool> {
   @override
   get value => left.value > right.value;
-  LessThan(left, right) : super(left, right);
+  LessThan(ValuedNode<num> left, ValuedNode<num> right) : super(left, right);
 }
 
 class GreaterThan extends BinaryOperator<num, num, bool> {
   @override
   get value => left.value < right.value;
-  GreaterThan(left, right) : super(left, right);
+  GreaterThan(ValuedNode<num> left, ValuedNode<num> right) : super(left, right);
 }
 
 class And extends BinaryOperator<bool, bool, bool> {
   @override
   get value => left.value && right.value;
-  And(left, right) : super(left, right);
+  And(ValuedNode<bool> left, ValuedNode<bool> right) : super(left, right);
 }
 
 class Or extends BinaryOperator<bool, bool, bool> {
   @override
   get value => left.value || right.value;
-  Or(left, right) : super(left, right);
+  Or(ValuedNode<bool> left, ValuedNode<bool> right) : super(left, right);
 }

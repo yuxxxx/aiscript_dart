@@ -1,4 +1,5 @@
 import 'package:aiscript_dart/aiscript.dart';
+import 'package:aiscript_dart/parser/core/binary_operator.dart';
 import 'package:aiscript_dart/parser/core/node.dart';
 import 'package:test/test.dart';
 
@@ -61,5 +62,15 @@ void main() {
   test('parse each', () {
     expect(parseAndGetFirstNode('each (let j k) return null'),
         Each('j', Identifier('k'), Return(Literal(null, 'null'))));
+  });
+
+  test('parse fndef', () {
+    expect(
+        parseAndGetFirstNode('@test(): bool { return true } '),
+        FunctionDefinition(
+            'test',
+            FunctionNode([], NamedTypeDefinition('bool', null),
+                [Return(Literal(true, 'bool'))]),
+            false));
   });
 }

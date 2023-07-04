@@ -86,6 +86,15 @@ class FunctionDefinition extends Definition {
   FunctionNode get expression => _expression;
   final FunctionNode _expression;
   FunctionDefinition(name, this._expression, mutable) : super(name, mutable);
+
+  @override
+  operator ==(dynamic other) {
+    if (identical(this, other)) return true;
+    if (other is FunctionDefinition) {
+      return name == other.name && expression == other.expression;
+    }
+    return false;
+  }
 }
 
 class FunctionNode implements Node {
@@ -95,13 +104,25 @@ class FunctionNode implements Node {
   Iterable<Node> get arguments => _arguments;
   final Iterable<Node> _arguments;
 
-  TypeDefinition get retType => _retType;
-  final TypeDefinition _retType;
+  TypeDefinition? get retType => _retType;
+  final TypeDefinition? _retType;
 
   Iterable<Node> get content => _content;
   final Iterable<Node> _content;
 
   FunctionNode(this._arguments, this._retType, this._content);
+
+  @override
+  operator ==(dynamic other) {
+    if (identical(this, other)) return true;
+    if (other is FunctionNode) {
+      return arguments.indexed
+              .every((i) => i.$2 == other.arguments.elementAt(i.$1)) &&
+          content.indexed.every((i) => i.$2 == other.content.elementAt(i.$1)) &&
+          retType == other.retType;
+    }
+    return false;
+  }
 }
 
 class For implements Node {
