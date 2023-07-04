@@ -57,4 +57,9 @@ void main() {
     expect(parseAndGetFirstNode(''' for i { break }'''),
         ForEach(Identifier('i'), Block([Break()])));
   });
+
+  test('parse each', () {
+    expect(parseAndGetFirstNode('each (let j k) return null'),
+        Each('j', Identifier('k'), Return(Literal(null, 'null'))));
+  });
 }

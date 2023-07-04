@@ -263,6 +263,32 @@ Node parse(text) {
                   .map((value) => value[2])) &
           blockOrStatement)
       .map((value) => ForEach(value[1], value[2]));
+  final each = (string('each') &
+              ws &
+              char('(') &
+              string('let') &
+              ws &
+              name &
+              ws &
+              char(',').optional() &
+              ws &
+              expr &
+              char(')') &
+              ws &
+              blockOrStatement)
+          .map((value) => Each(value[5], value[9], value[12])) |
+      (string('each') &
+              wsp &
+              string('let') &
+              ws &
+              name &
+              ws &
+              char(',').optional() &
+              ws &
+              expr &
+              wsp &
+              blockOrStatement)
+          .map((value) => Each(value[4], value[8], value[10]));
   type.set(genericNamedType | primitiveNamedType | functionType);
   arrayItem.set(array | obj | boolOperand | numOperand | literal);
   propertyValue.set(array | obj | boolOperand | numOperand | literal);
@@ -271,6 +297,7 @@ Node parse(text) {
       fnDef |
       output |
       ret |
+      each |
       forFromTo |
       forFromToWithBrakets |
       forEach |

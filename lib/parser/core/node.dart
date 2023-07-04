@@ -150,6 +150,38 @@ class ForEach implements Node {
   }
 }
 
+class Each implements Node {
+  @override
+  get type => 'each';
+
+  String get variant => _variant;
+  final String _variant;
+
+  Node get items => _items;
+  final Node _items;
+
+  Node get iteration => _iteration;
+  final Node _iteration;
+
+  Each(this._variant, this._items, this._iteration);
+
+  @override
+  operator ==(dynamic other) {
+    if (identical(this, other)) return true;
+    if (other is Each) {
+      return variant == other.variant &&
+          iteration == other.iteration &&
+          items == other.items;
+    }
+    return false;
+  }
+
+  @override
+  String toString() {
+    return 'Each: $variant: [$items]{ $iteration }';
+  }
+}
+
 class Return implements Node {
   @override
   get type => 'return';
