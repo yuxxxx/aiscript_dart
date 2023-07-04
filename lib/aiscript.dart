@@ -49,6 +49,10 @@ Node parse(text) {
   final statements = (statement &
           (sp & newline() & ws & statement).map((value) => value[3]).star())
       .map((value) => [value[0], ...value[1]]);
+  final block = (char('{') & ws & statements.optional() & ws & char('}'))
+      .map((value) => Block((value[2] as List<dynamic> ?? []).cast<Node>()));
+  final blockOrStatement = (block | statement);
+
   final main =
       (ws & globalStatements.optional() & ws).map((value) => value[1] ?? []);
 
@@ -219,11 +223,60 @@ Node parse(text) {
       (string('<:') & ws & expr).map((value) => Identifier.chained('print', [
             CallChain([value[2]])
           ]));
+  final ret = (string('return') & noneOf('A-Za-z0-9_:') & ws & expr)
+      .map((value) => Return(value[3]));
+  final brk = (string('break') & noneOf('A-Za-z0-9_:')).map((value) => Break());
+  final ctn =
+      (string('continue') & noneOf('A-Za-z0-9_:')).map((value) => Continue());
+
+  final forFromToWithBrakets = (string('for') &
+          ws &
+          char('(') &
+          string('let') &
+          ws &
+          name &
+          ws &
+          (char('=') & ws & expr).map((value) => value[2]).optional() &
+          char(',').optional() &
+          expr &
+          char(')') &
+          ws &
+          blockOrStatement)
+      .map((value) =>
+          For(value[5], value[7] ?? Literal(0, 'num'), value[9], value[12]));
+  final forFromTo = (string('for') &
+          wsp &
+          string('let') &
+          ws &
+          name &
+          ws &
+          (char('=') & ws & expr).map((value) => value[2]).optional() &
+          char(',').optional() &
+          expr &
+          wsp &
+          blockOrStatement)
+      .map((value) =>
+          For(value[4], value[6] ?? Literal(0, 'num'), value[8], value[10]));
+  final forEach = (string('for') &
+          ((wsp & expr & wsp).map((value) => value[1]) |
+              (ws & char('(') & expr & char(')') & ws)
+                  .map((value) => value[2])) &
+          blockOrStatement)
+      .map((value) => ForEach(value[1], value[2]));
   type.set(genericNamedType | primitiveNamedType | functionType);
   arrayItem.set(array | obj | boolOperand | numOperand | literal);
   propertyValue.set(array | obj | boolOperand | numOperand | literal);
 
-  statement.set(varDef | fnDef | output | expr);
+  statement.set(varDef |
+      fnDef |
+      output |
+      ret |
+      forFromTo |
+      forFromToWithBrakets |
+      forEach |
+      brk |
+      ctn |
+      expr);
   expr.set(infix | expr2);
   expr2.set(function | expr3);
   expr3.set(boolOperand |
@@ -234,7 +287,7 @@ Node parse(text) {
       identifier |
       binaryOperator(expr));
 
-  parser.set(statement);
+  parser.set(main.map((value) => Block((value as List<dynamic>).cast<Node>())));
 
   return parser.parse(text).value as Node;
 }
