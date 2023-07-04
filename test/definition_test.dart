@@ -1,5 +1,4 @@
 import 'package:aiscript_dart/aiscript.dart';
-import 'package:aiscript_dart/parser/core/binary_operator.dart';
 import 'package:aiscript_dart/parser/core/node.dart';
 import 'package:test/test.dart';
 
@@ -39,8 +38,11 @@ void main() {
   });
 
   test('parse output', () {
-    expect(parseAndGetFirstNode('<: "hello world!"'),
-        Identifier.chained('print', [Literal('hello world!', 'str')]));
+    expect(
+        parseAndGetFirstNode('<: "hello world!"'),
+        Identifier.chained('print', [
+          CallChain([Literal('hello world!', 'str')])
+        ]));
   });
 
   test('parse return', () {
@@ -62,6 +64,17 @@ void main() {
   test('parse each', () {
     expect(parseAndGetFirstNode('each (let j k) return null'),
         Each('j', Identifier('k'), Return(Literal(null, 'null'))));
+  });
+
+  test('parse loop', () {
+    expect(
+        parseAndGetFirstNode('loop { let x = 2\n <: x } ').toString(),
+        Loop([
+          ValuableDefinition('x', Literal(2, 'num'), null, false),
+          Identifier.chained('print', [
+            CallChain([Identifier('x')])
+          ])
+        ]).toString());
   });
 
   test('parse fndef', () {

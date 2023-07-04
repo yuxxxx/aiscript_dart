@@ -295,6 +295,9 @@ Node parse(text) {
   type.set(genericNamedType | primitiveNamedType | functionType);
   arrayItem.set(array | obj | boolOperand | numOperand | literal);
   propertyValue.set(array | obj | boolOperand | numOperand | literal);
+  final loop =
+      (string('loop') & ws & char('{') & ws & statements & ws & char('}'))
+          .map((value) => Loop(value[4].cast<Node>()));
 
   statement.set(varDef |
       fnDef |
@@ -304,6 +307,7 @@ Node parse(text) {
       forFromTo |
       forFromToWithBrakets |
       forEach |
+      loop |
       brk |
       ctn |
       expr);

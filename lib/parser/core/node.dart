@@ -203,6 +203,33 @@ class Each implements Node {
   }
 }
 
+class Loop implements Node {
+  @override
+  get type => 'loop';
+
+  Iterable<Node> get statements => _statements;
+  final Iterable<Node> _statements;
+
+  Loop(this._statements);
+
+  @override
+  operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other is CallChain) {
+      return statements.indexed
+          .every((i) => i.$2 == other.args.elementAt(i.$1));
+    }
+    return false;
+  }
+
+  @override
+  String toString() {
+    return 'Loop: { ${statements.join(",")} }';
+  }
+}
+
 class Return implements Node {
   @override
   get type => 'return';
@@ -291,14 +318,15 @@ class Identifier implements Node {
       return true;
     }
     if (other is Identifier) {
-      return name == other.name;
+      return name == other.name &&
+          chain.indexed.every((i) => i.$2 == other.chain.elementAt(i.$1));
     }
     return false;
   }
 
   @override
   String toString() {
-    return 'Identifier: $name';
+    return 'Identifier: $name, chain: ${chain.join(",")}';
   }
 }
 
@@ -343,7 +371,7 @@ class FunctionTypeDefinition implements TypeDefinition {
   FunctionTypeDefinition(this._args, this._result);
 
   @override
-  bool operator ==(Object other) {
+  operator ==(Object other) {
     if (identical(this, other)) {
       return true;
     }
@@ -359,10 +387,26 @@ class CallChain implements Node {
   @override
   get type => 'callChain';
 
-  get args => _args;
-  final List<ValuedNode<dynamic>> _args;
+  Iterable<Node> get args => _args;
+  final List<Node> _args;
 
   CallChain(this._args);
+
+  @override
+  operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other is CallChain) {
+      return args.indexed.every((i) => i.$2 == other.args.elementAt(i.$1));
+    }
+    return false;
+  }
+
+  @override
+  String toString() {
+    return 'CallChain: [${args.join(",")}]';
+  }
 }
 
 class Namespace implements Node {
