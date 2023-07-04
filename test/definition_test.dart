@@ -9,13 +9,13 @@ void main() {
 
   test('parse inferred type definition', () {
     expect(parse('let variant = 2'),
-        Definition('variant', Literal(2, 'num'), null, false));
+        ValuableDefinition('variant', Literal(2, 'num'), null, false));
   });
 
   test('parse typed definition', () {
     expect(
         parse('let variant : num = 2'),
-        Definition('variant', Literal(2, 'num'),
+        ValuableDefinition('variant', Literal(2, 'num'),
             NamedTypeDefinition('num', null), false));
   });
 
@@ -25,12 +25,17 @@ void main() {
         = {
           hello: ['world']
         }'''),
-        Definition(
+        ValuableDefinition(
             'obj',
             Literal({
               'hello': ['world']
             }, 'obj'),
             null,
             true));
+  });
+
+  test('parse output', () {
+    expect(parse('<: "hello world!"'),
+        Identifier.chained('print', [Literal('hello world!', 'str')]));
   });
 }

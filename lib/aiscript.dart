@@ -14,6 +14,44 @@ Parser<dynamic> binaryOperator(expression) {
 }
 
 Node parse(text) {
+  final name = (letter() & word().star()).flatten().map((value) => value);
+  final nameWithNameSpace =
+      (name & char(':') & name).flatten().map((value) => value);
+
+  final varDef = undefined();
+  final fnDef = undefined();
+  final namespace = undefined();
+  final namespaceStatement = (varDef | fnDef | namespace);
+  final namespaceStatements = (namespaceStatement &
+          (sp & newline() & ws & namespaceStatement)
+              .map((value) => value[3])
+              .star())
+      .map((value) => [value[0], ...value[1]]);
+  final ns = (string('::') &
+          wsp &
+          name &
+          wsp &
+          char('{') &
+          ws &
+          namespaceStatements.optional() &
+          ws &
+          char('}'))
+      .map((value) => Namespace(value[2], value[6]));
+  namespace.set(ns);
+  final meta = undefined();
+  final statement = undefined();
+  final globalStatement = (namespace | meta | statement);
+  final globalStatements = (globalStatement &
+          (sp & newline() & ws & globalStatement)
+              .map((value) => value[3])
+              .star())
+      .map((value) => [value[0], ...value[1]]);
+  final statements = (statement &
+          (sp & newline() & ws & statement).map((value) => value[3]).star())
+      .map((value) => [value[0], ...value[1]]);
+  final main =
+      (ws & globalStatements.optional() & ws).map((value) => value[1] ?? []);
+
   final parser = undefined();
   final numOperand = undefined();
   final boolOperand = undefined();
@@ -23,7 +61,7 @@ Node parse(text) {
   final bool = boolean();
   final sl = str();
   final nul = string('null').map((_) => Literal(null, 'null'));
-  final literal = (num | bool | sl | nul);
+  final literal = (sl | num | bool | nul);
 
   final eq = (equatable & string('==').trim() & equatable)
       .map((values) => Equal(values[0], values[2]));
@@ -94,22 +132,70 @@ Node parse(text) {
   });
 
   final expr = undefined();
+  final expr2 = undefined();
+  final infix = undefined();
+  final expr3 = undefined();
   final type = undefined();
 
-  final name = (letter() & word().star()).flatten().map((value) => value);
-  final nameWithNameSpace =
-      (name & char(':') & name).flatten().map((value) => value);
+  // functioin definition
 
-  final variable = ((string('let').map((_) => false) |
-              string('var').map((_) => true)) &
+  final argument =
+      (name & (ws & char(':') & ws & type).map((value) => value[3]).optional())
+          .map((value) => Argument(value[0], value[1]));
+  final arguments = argument &
+      (separator & argument)
+          .map((value) => value[1])
+          .star()
+          .map((value) => [value[0], ...value[1]]);
+  final functionDefinition = (char('@') &
           sp &
-          name &
+          name & // 2
+          sp &
+          char('(') &
+          ws &
+          arguments & // 6
+          ws &
+          char(')') &
+          (ws & char(':') & ws & type)
+              .map((value) => value[3])
+              .optional() & // 9
+          ws &
+          char('{') &
+          ws &
+          statements.optional() & // 13
+          ws &
+          char('}'))
+      .map((value) => FunctionDefinition(
+          value[2], FunctionNode(value[6], value[9], value[13]), false));
+  fnDef.set(functionDefinition);
+
+  final function = (string('@(') &
+          ws &
+          arguments.optional() &
+          ws &
+          char(')') &
           (ws & char(':') & ws & type).map((value) => value[3]).optional() &
           ws &
-          char('=') &
+          char('{') &
           ws &
-          expr)
-      .map((values) => Definition(values[2], values[7], values[3], values[0]));
+          statements.optional() &
+          ws &
+          char('}'))
+      .map((value) => FunctionNode(value[2] ?? [], value[5], value[9]));
+
+  final variable =
+      ((string('let').map((_) => false) | string('var').map((_) => true)) &
+              sp &
+              name &
+              (ws & char(':') & ws & type).map((value) => value[3]).optional() &
+              ws &
+              char('=') &
+              ws &
+              expr)
+          .map((values) =>
+              ValuableDefinition(values[2], values[7], values[3], values[0]));
+  varDef.set(variable);
+
   final identifier =
       (nameWithNameSpace | name).map((value) => Identifier(value));
 
@@ -129,12 +215,26 @@ Node parse(text) {
           ws &
           type)
       .map((value) => FunctionTypeDefinition(value[2] ?? [], value[8]));
+  final output =
+      (string('<:') & ws & expr).map((value) => Identifier.chained('print', [
+            CallChain([value[2]])
+          ]));
   type.set(genericNamedType | primitiveNamedType | functionType);
   arrayItem.set(array | obj | boolOperand | numOperand | literal);
   propertyValue.set(array | obj | boolOperand | numOperand | literal);
-  expr.set(array | obj | boolOperand | numOperand | literal);
 
-  parser.set(expr | variable | identifier);
+  statement.set(varDef | fnDef | output | expr);
+  expr.set(infix | expr2);
+  expr2.set(function | expr3);
+  expr3.set(boolOperand |
+      numOperand |
+      literal |
+      obj |
+      array |
+      identifier |
+      binaryOperator(expr));
+
+  parser.set(statement);
 
   return parser.parse(text).value as Node;
 }
