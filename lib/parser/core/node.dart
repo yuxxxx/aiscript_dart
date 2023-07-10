@@ -13,7 +13,7 @@ abstract class ValuedNode<T> extends Node {
   ValuedNode();
 }
 
-class Literal<T> implements ValuedNode<T> {
+class Literal<T> extends Chainable implements ValuedNode<T> {
   @override
   get type => this._type;
   final String _type;
@@ -97,7 +97,7 @@ class FunctionDefinition extends Definition {
   }
 }
 
-class FunctionNode implements Node {
+class FunctionNode with Chainable implements Node {
   @override
   get type => 'fn';
 
@@ -297,20 +297,14 @@ class Block implements Node {
   }
 }
 
-class Identifier implements Node {
+class Identifier with Chainable implements Node {
   @override
   get type => 'identifier';
 
   get name => _name;
   final String _name;
 
-  Iterable<Node> get chain => _chain;
-  final List<Node> _chain = [];
-
   Identifier(this._name);
-  Identifier.chained(this._name, Iterable<Node> chain) {
-    _chain.addAll(chain);
-  }
 
   @override
   operator ==(Object other) {
@@ -409,6 +403,58 @@ class CallChain implements Node {
   }
 }
 
+class IndexChain implements Node {
+  @override
+  get type => 'callChain';
+
+  Node get index => _index;
+  final Node _index;
+
+  IndexChain(this._index);
+
+  @override
+  operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other is IndexChain) {
+      return index == other.index;
+    }
+    return false;
+  }
+
+  @override
+  String toString() {
+    return 'IndexChain: [$index]';
+  }
+}
+
+class PropertyChain implements Node {
+  @override
+  get type => 'callChain';
+
+  String get name => _name;
+  final String _name;
+
+  PropertyChain(this._name);
+
+  @override
+  operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other is PropertyChain) {
+      return name == other.name;
+    }
+    return false;
+  }
+
+  @override
+  String toString() {
+    return 'IndexChain: .$name';
+  }
+}
+
 class Namespace implements Node {
   @override
   get type => 'ns';
@@ -430,4 +476,37 @@ class Argument {
   final TypeDefinition _argType;
 
   Argument(this._name, this._argType);
+}
+
+class IfThen {
+  Node get cond => _cond;
+  final Node _cond;
+
+  Node get then => _then;
+  final Node _then;
+
+  IfThen(this._cond, this._then);
+}
+
+class If extends IfThen with Chainable implements Node {
+  @override
+  get type => 'if';
+
+  Iterable<IfThen> get elseIf => _elseIf;
+  final Iterable<IfThen> _elseIf;
+
+  Node? get els => _els;
+  final Node? _els;
+
+  If(cond, then, this._elseIf, this._els) : super(cond, then);
+}
+
+mixin class Chainable {
+  Iterable<Node> get chain => _chain;
+  Iterable<Node> _chain = [];
+
+  Chainable chains(Iterable<Node> chain) {
+    _chain = chain;
+    return this;
+  }
 }

@@ -8,7 +8,7 @@ final ws = pattern(' \t\r\n').star();
 final wsp = pattern(' \t\r\n').plus();
 ChoiceParser<dynamic> separator = ((ws & char(',') & ws) | wsp);
 
-Parser<dynamic> binaryOperator(expression) {
+Parser<dynamic> curlyBracket(expression) {
   return (char('(') & ws & expression & ws & char(')'))
       .map((value) => value[2]);
 }
@@ -83,7 +83,7 @@ Node parse(text) {
       .map((values) => Or(values[0], values[2]));
   final compaarers = (eq | ne | lt | gt);
 
-  final binaryBool = binaryOperator(compaarers | and | or);
+  final binaryBool = curlyBracket(compaarers | and | or);
   equatable.set(boolOperand | num | bool | sl);
   boolOperand.set(binaryBool | bool);
 
@@ -101,7 +101,7 @@ Node parse(text) {
       .map((values) => Power(values[0], values[2]));
 
   final binaryCalc =
-      binaryOperator(minus | plus | multiply | divide | modulo | power);
+      curlyBracket(minus | plus | multiply | divide | modulo | power);
   numOperand.set(binaryCalc | num);
 
   // array
@@ -223,7 +223,7 @@ Node parse(text) {
           type)
       .map((value) => FunctionTypeDefinition(value[2] ?? [], value[8]));
   final output =
-      (string('<:') & ws & expr).map((value) => Identifier.chained('print', [
+      (string('<:') & ws & expr).map((value) => Identifier('print').chains([
             CallChain([value[2]])
           ]));
   final ret = (string('return') & noneOf('A-Za-z0-9_:') & ws & expr)
@@ -299,6 +299,37 @@ Node parse(text) {
       (string('loop') & ws & char('{') & ws & statements & ws & char('}'))
           .map((value) => Loop(value[4].cast<Node>()));
 
+  final elseIfBlock = (string('elif') &
+          noneOf('a-zA-Z0-9_:') &
+          ws &
+          expr &
+          ws &
+          blockOrStatement)
+      .map((value) => (IfThen(value[3], value[5])));
+  final elseIfBlocks =
+      (elseIfBlock & (ws & elseIfBlock).map((value) => value[1]).star())
+          .map((value) => [value[0], ...value[1]]);
+  final elseBlock =
+      (string("else") & noneOf('a-zA-Z0-9_:') & ws & blockOrStatement)
+          .map((value) => value[3]);
+  final ifThen = (string('if') &
+          wsp &
+          expr &
+          wsp &
+          blockOrStatement &
+          (wsp & elseIfBlocks).map((value) => value[1]).optional() &
+          (wsp & elseBlock).map((value) => value[1]).optional())
+      .map((value) => If(value[2], value[4], value[5], value[6]));
+
+  final propChain = (char('.') & name).map((value) => PropertyChain(value[1]));
+  final indexChain = (char('[') & ws & expr & ws & char(']'))
+      .map((value) => IndexChain(value[2]));
+  final callArgs = (expr & (separator & expr).map((value) => value[1]).star())
+      .map((value) => [value[0], ...value[1]]);
+  final callChain = (char('(') & ws & callArgs.optional() & ws & char(')'))
+      .map((value) => CallChain(value[2] ?? []));
+  final chain = (expr3 & (callChain | indexChain | propChain).plus())
+      .map((value) => value[0].chains(value[1]));
   statement.set(varDef |
       fnDef |
       output |
@@ -312,14 +343,14 @@ Node parse(text) {
       ctn |
       expr);
   expr.set(infix | expr2);
-  expr2.set(function | expr3);
+  expr2.set(ifThen | function | chain | expr3);
   expr3.set(boolOperand |
       numOperand |
       literal |
       obj |
       array |
       identifier |
-      binaryOperator(expr));
+      curlyBracket(expr));
 
   parser.set(main.map((value) => Block((value as List<dynamic>).cast<Node>())));
 
