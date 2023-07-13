@@ -501,12 +501,49 @@ class If extends IfThen with Chainable implements Node {
   If(cond, then, this._elseIf, this._els) : super(cond, then);
 }
 
+class Assign implements Node {
+  @override
+  get type => 'assign';
+
+  Node get dest => _dest;
+  final Node _dest;
+
+  Node get expression => _expression;
+  final Node _expression;
+
+  Assign(this._dest, this._expression);
+}
+
+class AddAssign extends Assign {
+  @override
+  get type => 'addAssign';
+
+  AddAssign(dest, expr) : super(dest, expr);
+}
+
+class SubAssign extends Assign {
+  @override
+  get type => 'subAssign';
+
+  SubAssign(dest, expr) : super(dest, expr);
+}
+
+class Not implements Node {
+  @override
+  get type => 'subAssign';
+
+  Node get expression => _expression;
+  final Node _expression;
+
+  Not(this._expression);
+}
+
 mixin class Chainable {
   Iterable<Node> get chain => _chain;
-  Iterable<Node> _chain = [];
+  final List<Node> _chain = [];
 
   Chainable chains(Iterable<Node> chain) {
-    _chain = chain;
+    _chain.addAll(chain);
     return this;
   }
 }

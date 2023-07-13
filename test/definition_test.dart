@@ -40,7 +40,7 @@ void main() {
   test('parse output', () {
     expect(
         parseAndGetFirstNode('<: "hello world!"'),
-        Identifier.chained('print', [
+        Identifier('print').chains([
           CallChain([Literal('hello world!', 'str')])
         ]));
   });
@@ -71,9 +71,9 @@ void main() {
         parseAndGetFirstNode('loop { let x = 2\n <: x } ').toString(),
         Loop([
           ValuableDefinition('x', Literal(2, 'num'), null, false),
-          Identifier.chained('print', [
+          Identifier('print').chains([
             CallChain([Identifier('x')])
-          ])
+          ]) as Node
         ]).toString());
   });
 

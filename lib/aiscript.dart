@@ -330,6 +330,20 @@ Node parse(text) {
       .map((value) => CallChain(value[2] ?? []));
   final chain = (expr3 & (callChain | indexChain | propChain).plus())
       .map((value) => value[0].chains(value[1]));
+  final assign = (expr &
+          ws &
+          (string('+=') | string('-=') | string('=')).map((value) => value) &
+          ws &
+          expr)
+      .map((value) {
+    final op = value[2];
+    final dest = value[0];
+    final expr = value[4];
+    if (op == '+=') return AddAssign(dest, expr);
+    if (op == '-=') return SubAssign(dest, expr);
+    return Assign(dest, expr);
+  });
+  final not = (char('!') & expr).map((value) => Not(value[1]));
   statement.set(varDef |
       fnDef |
       output |
@@ -341,6 +355,7 @@ Node parse(text) {
       loop |
       brk |
       ctn |
+      assign |
       expr);
   expr.set(infix | expr2);
   expr2.set(ifThen | function | chain | expr3);
@@ -349,6 +364,7 @@ Node parse(text) {
       literal |
       obj |
       array |
+      not |
       identifier |
       curlyBracket(expr));
 
