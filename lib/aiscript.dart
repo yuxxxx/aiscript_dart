@@ -319,7 +319,7 @@ Node parse(text) {
           blockOrStatement &
           (wsp & elseIfBlocks).map((value) => value[1]).optional() &
           (wsp & elseBlock).map((value) => value[1]).optional())
-      .map((value) => If(value[2], value[4], value[5], value[6]));
+      .map((value) => If(value[2], value[4], value[5] ?? [], value[6]));
 
   final propChain = (char('.') & name).map((value) => PropertyChain(value[1]));
   final indexChain = (char('[') & ws & expr & ws & char(']'))

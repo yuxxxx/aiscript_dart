@@ -86,4 +86,19 @@ void main() {
                 [Return(Literal(true, 'bool'))]),
             false));
   });
+
+  test('parse if', () {
+    expect(parseAndGetFirstNode('if true 1 else 2'),
+        If(Literal(true, 'bool'), Literal(1, 'num'), [], Literal(2, 'num')));
+  });
+
+  test('parse assign', () {
+    expect(parseAndGetFirstNode('x = "test"'),
+        Assign(Identifier('x'), Literal('test', 'str')));
+  });
+
+  test('parse assign 2', () {
+    expect(parseAndGetFirstNode('x = y'),
+        Assign(Identifier('x'), Identifier('y')));
+  });
 }

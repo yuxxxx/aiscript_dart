@@ -1,3 +1,5 @@
+import 'package:aiscript_dart/parser/utils/items_equal.dart';
+
 abstract class Node {
   String get type;
   Node();
@@ -116,9 +118,8 @@ class FunctionNode with Chainable implements Node {
   operator ==(dynamic other) {
     if (identical(this, other)) return true;
     if (other is FunctionNode) {
-      return arguments.indexed
-              .every((i) => i.$2 == other.arguments.elementAt(i.$1)) &&
-          content.indexed.every((i) => i.$2 == other.content.elementAt(i.$1)) &&
+      return arguments.everyEquals(other.arguments) &&
+          content.everyEquals(other.content) &&
           retType == other.retType;
     }
     return false;
@@ -218,8 +219,7 @@ class Loop implements Node {
       return true;
     }
     if (other is CallChain) {
-      return statements.indexed
-          .every((i) => i.$2 == other.args.elementAt(i.$1));
+      return statements.everyEquals(statements);
     }
     return false;
   }
@@ -285,8 +285,7 @@ class Block implements Node {
   operator ==(dynamic other) {
     if (identical(this, other)) return true;
     if (other is Block) {
-      return statements.indexed
-          .every((i) => i.$2 == other.statements.elementAt(i.$1));
+      return statements.everyEquals(statements);
     }
     return false;
   }
@@ -312,8 +311,7 @@ class Identifier with Chainable implements Node {
       return true;
     }
     if (other is Identifier) {
-      return name == other.name &&
-          chain.indexed.every((i) => i.$2 == other.chain.elementAt(i.$1));
+      return name == other.name && chain.everyEquals(chain);
     }
     return false;
   }
@@ -392,7 +390,7 @@ class CallChain implements Node {
       return true;
     }
     if (other is CallChain) {
-      return args.indexed.every((i) => i.$2 == other.args.elementAt(i.$1));
+      return args.everyEquals(args);
     }
     return false;
   }
@@ -498,7 +496,18 @@ class If extends IfThen with Chainable implements Node {
   Node? get els => _els;
   final Node? _els;
 
-  If(cond, then, this._elseIf, this._els) : super(cond, then);
+  If(Node cond, Node then, this._elseIf, this._els) : super(cond, then);
+
+  @override
+  operator ==(dynamic other) {
+    if (identical(this, other)) return true;
+    if (other is If) {
+      return cond == other.cond &&
+          then == other.then &&
+          elseIf.everyEquals(other.elseIf);
+    }
+    return false;
+  }
 }
 
 class Assign implements Node {
@@ -512,6 +521,15 @@ class Assign implements Node {
   final Node _expression;
 
   Assign(this._dest, this._expression);
+
+  @override
+  operator ==(dynamic other) {
+    if (identical(this, other)) return true;
+    if (other is Assign) {
+      return dest == other.dest && expression == other.expression;
+    }
+    return false;
+  }
 }
 
 class AddAssign extends Assign {
