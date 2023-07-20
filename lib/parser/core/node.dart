@@ -379,10 +379,9 @@ class CallChain implements Node {
   @override
   get type => 'callChain';
 
-  Iterable<Node> get args => _args;
-  final List<Node> _args;
+  Iterable<Node> args;
 
-  CallChain(this._args);
+  CallChain(this.args);
 
   @override
   operator ==(Object other) {
@@ -405,10 +404,9 @@ class IndexChain implements Node {
   @override
   get type => 'callChain';
 
-  Node get index => _index;
-  final Node _index;
+  Node index;
 
-  IndexChain(this._index);
+  IndexChain(this.index);
 
   @override
   operator ==(Object other) {
