@@ -50,7 +50,7 @@ Iterable<Node> parseMain(text) {
           (sp & newline() & ws & statement).map((value) => value[3]).star())
       .map((value) => [value[0], ...value[1]]);
   final block = (char('{') & ws & statements.optional() & ws & char('}'))
-      .map((value) => Block((value[2] as List<dynamic> ?? []).cast<Node>()));
+      .map((value) => Block((value[2] as List<dynamic>? ?? []).cast<Node>()));
   final blockOrStatement = (block | statement);
 
   final main =

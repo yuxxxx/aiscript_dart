@@ -24,8 +24,8 @@ mixin class InterpreterOption {
 }
 
 class Interpreter {
-  final IrqRate = 300;
-  get IrqAt => IrqRate - 1;
+  final _irqRate = 300;
+  get _irqAt => _irqRate - 1;
   final Map<String, VNode> variables;
   final InterpreterOption option;
   var stepCount = 0;
@@ -80,7 +80,6 @@ class Interpreter {
     final scope = this.scope!.createChildScope(null, null);
 
     for (var node in ns.members) {}
-    ;
   }
 
   Future<Value> runInternal(Iterable<Node> program, Scope scope) async {
@@ -101,7 +100,7 @@ class Interpreter {
 
   FutureOr<Value> _eval(Node node, Scope scope) async {
     if (stop) return Nul();
-    if (stepCount % IrqRate == IrqAt) {
+    if (stepCount % _irqRate == _irqAt) {
       await Future.delayed(Duration(milliseconds: 5));
     }
     stepCount += 1;
