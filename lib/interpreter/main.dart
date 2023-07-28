@@ -79,7 +79,15 @@ class Interpreter {
   Future collectNamespaceMember(Namespace ns) async {
     final scope = this.scope!.createChildScope(null, null);
 
-    for (var node in ns.members) {}
+    for (var node in ns.members) {
+      switch (node) {
+        case FunctionDefinition def:
+          final v = await _eval(def.expression, scope);
+          scope.add(node.name, v);
+          this.scope!.add('${ns.name}:${node.name}', v);
+          break;
+      }
+    }
   }
 
   Future<Value> runInternal(Iterable<Node> program, Scope scope) async {

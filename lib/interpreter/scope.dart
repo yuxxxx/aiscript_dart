@@ -1,3 +1,4 @@
+import 'package:aiscript_dart/exceptions/errors.dart';
 import 'package:aiscript_dart/interpreter/node.dart';
 
 class ScopeOptions {
@@ -38,5 +39,16 @@ class Scope {
   Scope createChildScope(Map<String, VNode>? states, String? name) {
     final layer = [states ?? {}, ..._layeredStates];
     return Scope.allowAnnonymous(layer, this, name);
+  }
+
+  void add(String name, Value v) {
+    log('add', {'var': name, 'val': v});
+    final states = _layeredStates.first;
+    if (states.containsKey(name)) {
+      throw RuntimeError(
+          "Variable '$name' is alerady exists in scope '${this.name}'");
+    }
+    states.addAll({name: v});
+    if (_parent == null) onUpdated(name, v);
   }
 }
