@@ -2,6 +2,7 @@ import 'package:aiscript_dart/parser/core/accessor.dart';
 import 'package:aiscript_dart/parser/core/node.dart';
 import 'package:aiscript_dart/parser/plugins/has_chain_prop.dart';
 import 'package:aiscript_dart/parser/plugins/is_expression.dart';
+import 'package:aiscript_dart/parser/plugins/parser_plugin.dart';
 import 'package:aiscript_dart/parser/visit.dart';
 
 Node transformNode(Node node) {
@@ -34,4 +35,11 @@ Iterable<Node> transformChain(Iterable<Node> nodes) {
     ret[i] = visitNode(ret[i], transformNode);
   }
   return ret;
+}
+
+class TransformChain implements ParserPlugin {
+  @override
+  Iterable<Node> effect(Iterable<Node> nodes) {
+    return transformChain(nodes);
+  }
 }

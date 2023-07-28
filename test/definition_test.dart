@@ -1,9 +1,8 @@
-import 'package:aiscript_dart/aiscript.dart';
+import 'package:aiscript_dart/main.dart';
 import 'package:aiscript_dart/parser/core/node.dart';
 import 'package:test/test.dart';
 
-Node parseAndGetFirstNode(String text) =>
-    (parse(text) as Block).statements.first;
+Node parseAndGetFirstNode(String text) => Parser.parseInput(text).first;
 
 void main() {
   test('parse variant', () {

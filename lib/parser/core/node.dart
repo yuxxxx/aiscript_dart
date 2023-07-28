@@ -41,11 +41,12 @@ class Literal<T> extends Chainable implements ValuedNode<T> {
   }
 }
 
-abstract class Definition implements Node {
+abstract class Definition implements Node, Naming {
   @override
   get type => 'def';
 
-  String get name => _name;
+  @override
+  get name => _name;
   final String _name;
 
   bool get mutable => _mutable;
@@ -296,10 +297,11 @@ class Block implements Node {
   }
 }
 
-class Identifier with Chainable implements Node {
+class Identifier with Chainable implements Node, Naming {
   @override
   get type => 'identifier';
 
+  @override
   get name => _name;
   final String _name;
 
@@ -425,11 +427,12 @@ class IndexChain implements Node {
   }
 }
 
-class PropertyChain implements Node {
+class PropertyChain implements Node, Naming {
   @override
   get type => 'callChain';
 
-  String get name => _name;
+  @override
+  get name => _name;
   final String _name;
 
   PropertyChain(this._name);
@@ -451,11 +454,12 @@ class PropertyChain implements Node {
   }
 }
 
-class Namespace implements Node {
+class Namespace implements Node, Naming {
   @override
   get type => 'ns';
 
-  String get name => _name;
+  @override
+  get name => _name;
   final String _name;
 
   Iterable<Node> get members => _members ?? [];
@@ -562,4 +566,8 @@ mixin class Chainable {
     _chain.addAll(chain);
     return this;
   }
+}
+
+abstract class Naming {
+  String get name;
 }

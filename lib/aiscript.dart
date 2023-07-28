@@ -13,7 +13,7 @@ Parser<dynamic> curlyBracket(expression) {
       .map((value) => value[2]);
 }
 
-Node parse(text) {
+Iterable<Node> parseMain(text) {
   final name = (letter() & word().star()).flatten().map((value) => value);
   final nameWithNameSpace =
       (name & char(':') & name).flatten().map((value) => value);
@@ -368,9 +368,9 @@ Node parse(text) {
       identifier |
       curlyBracket(expr));
 
-  parser.set(main.map((value) => Block((value as List<dynamic>).cast<Node>())));
+  parser.set(main.map((value) => value.cast<Node>()));
 
-  return parser.parse(text).value as Node;
+  return parser.parse(text).value as Iterable<Node>;
 }
 
 Parser<dynamic> boolean() {

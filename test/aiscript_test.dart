@@ -1,9 +1,9 @@
-import 'package:aiscript_dart/aiscript.dart';
+import 'package:aiscript_dart/main.dart' as ai;
 import 'package:aiscript_dart/parser/core/node.dart';
 import 'package:test/test.dart';
 
 ValuedNode<dynamic> parseValue(text) =>
-    (parse(text) as Block).statements.first as ValuedNode<dynamic>;
+    ai.Parser.parseInput(text).first as ValuedNode<dynamic>;
 
 void main() {
   test('parse add', () {
