@@ -1,27 +1,16 @@
 import 'package:aiscript_dart/interpreter/main.dart';
 import 'package:aiscript_dart/interpreter/node.dart';
+@GenerateNiceMocks([MockSpec<InterpreterOption>()])
+import 'package:aiscript_dart/main.dart' show Parser;
 import 'package:aiscript_dart/parser/core/node.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-class MockInterpreterOption extends InterpreterOption {
-  @override
-  Future<String> input(String q) => _input(q);
-  final Future<String> Function(String q) _input;
-
-  @override
-  void output(Value value) => _output(value);
-  final void Function(Value value) _output;
-
-  @override
-  void log(String type, Map<String, dynamic> params) => _log(type, params);
-  final void Function(String type, Map<String, dynamic> params) _log;
-
-  MockInterpreterOption(this._input, this._output, this._log);
-}
+class MockInterpreterOption extends Mock implements InterpreterOption {}
 
 void main() {
-  final mockInterpreterOption = MockInterpreterOption(
-      (q) => Future(() => q), (value) {}, (type, params) {});
+  final mockInterpreterOption = MockInterpreterOption();
   test('construct Interpreter', () {
     final interpreter = Interpreter.initWithDefault();
     expect(interpreter.scope, isNotNull);
@@ -34,5 +23,14 @@ void main() {
     final result = await interpreter
         .runInternal([Literal('hello world!', 'str')], interpreter.scope!);
     expect(result.value, 'hello world!');
+  });
+
+  test('parse simple string', () async {
+    final interpreter = Interpreter({}, mockInterpreterOption);
+    final nodes = Parser().parse('"hello world!"');
+    print(nodes);
+    await interpreter.execute(nodes);
+    verify(mockInterpreterOption.log('end', {'val': Str('hello world!')}))
+        .called(1);
   });
 }

@@ -42,6 +42,20 @@ class FnNative extends VNode {
 abstract class Value extends VNode {
   String get type;
   get value;
+
+  @override
+  operator ==(dynamic other) {
+    if (identical(this, other)) return true;
+    if (other is Value) {
+      return type == other.type && value == other.value;
+    }
+    return false;
+  }
+
+  @override
+  String toString() {
+    return '{ type: $type, val: $value }';
+  }
 }
 
 class Str extends Value {

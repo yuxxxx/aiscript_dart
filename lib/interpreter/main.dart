@@ -54,7 +54,7 @@ class Interpreter {
     if (script == null || script.isEmpty) return;
 
     await collectNamespace(script);
-    final result = runInternal(script, scope!);
+    final result = await runInternal(script, scope!);
 
     _log('end', {'val': result});
   }
