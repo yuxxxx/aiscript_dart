@@ -69,11 +69,38 @@ class Str extends Value {
   Str(this._value);
 }
 
+class Num extends Value {
+  @override
+  get type => 'num';
+  @override
+  num get value => _value;
+  final num _value;
+  Num(this._value);
+}
+
+class Bool extends Value {
+  @override
+  get type => 'bool';
+  @override
+  bool get value => _value;
+  final bool _value;
+  Bool(this._value);
+}
+
 class Nul extends Value {
   @override
   get type => 'null';
   @override
   Null get value => null;
+}
+
+class Arr extends Value {
+  @override
+  get type => 'arr';
+  @override
+  Iterable<dynamic> get value => _value;
+  final Iterable<dynamic> _value;
+  Arr(this._value);
 }
 
 class VReturn extends Value {

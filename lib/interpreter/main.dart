@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:aiscript_dart/interpreter/node.dart';
 import 'package:aiscript_dart/interpreter/scope.dart';
 import 'package:aiscript_dart/interpreter/utils.dart';
+import 'package:aiscript_dart/parser/core/binary_operator.dart';
 import 'dart:io';
 
 import 'package:aiscript_dart/parser/core/node.dart';
@@ -116,6 +117,26 @@ class Interpreter {
     switch (node) {
       case Literal<String> str:
         return Str(str.value);
+      case Literal<num> number:
+        return Num(number.value);
+      case Literal<bool> boolean:
+        return Bool(boolean.value);
+      // ignore: prefer_void_to_null, unused_local_variable
+      case Literal<Null> nul:
+        return Nul();
+      case Literal<Iterable<Node>> arr:
+        return Arr(arr.value.map((item) async => await _eval(item, scope)));
+
+      case Or or:
+        final left = await _eval(or.left, scope);
+        assertBoolean(left);
+        if (left.value) {
+          return left;
+        } else {
+          final right = await _eval(or.right, scope);
+          assertBoolean(right);
+          return right;
+        }
     }
 
     throw Exception('invalid node type: ${node.type}');

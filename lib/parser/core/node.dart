@@ -41,6 +41,25 @@ class Literal<T> extends Chainable implements ValuedNode<T> {
   }
 }
 
+class Obj extends Chainable implements ValuedNode<Map> {
+  @override
+  get type => 'obj';
+
+  @override
+  Map get value {
+    return {
+      for (var kv in _value.entries)
+        kv.key: (kv.value is ValuedNode<dynamic>
+            ? (kv.value as ValuedNode<dynamic>).value
+            : kv.value)
+    };
+  }
+
+  final Map<String, Node> _value;
+
+  Obj(this._value);
+}
+
 abstract class Definition implements Node, Naming {
   @override
   get type => 'def';
